@@ -16,22 +16,27 @@
 'use strict'
 
 const AWS = require('aws-sdk')
-AWS.config.update({ region: process.env.AWS_REGION || 'us-east-1' })
+AWS.config.update({
+  region: process.env.AWS_REGION || 'us-east-1'
+})
 const SES = new AWS.SES()
 
 const sendEmail = async function (formData) {
 
   const getContent = (formData) => {
     let retval = ''
-    for (var attribName in formData){
+    for (var attribName in formData) {
       retval += attribName + ': ' + formData[attribName] + '\n\n'
     }
     return retval
   }
-  
-  return new Promise(async (resolve, reject) => {
 
+  return new Promise(async (resolve, reject) => {
+    var subject = 'New Form Submission';
     // Build params for SES
+    if (typeof formData.source !== 'undefined') {
+      subject = 'New submittion - ' + formData.source;
+    }
     const emailParams = {
       Source: process.env.ValidatedEmail, // SES SENDING EMAIL
       ReplyToAddresses: [process.env.ValidatedEmail],
@@ -47,7 +52,7 @@ const sendEmail = async function (formData) {
         },
         Subject: {
           Charset: 'UTF-8',
-          Data: 'New Form Submission'
+          Data: subject
         },
       },
     }
@@ -63,4 +68,6 @@ const sendEmail = async function (formData) {
   })
 }
 
-module.exports = { sendEmail }
+module.exports = {
+  sendEmail
+}
